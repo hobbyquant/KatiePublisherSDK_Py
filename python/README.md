@@ -48,6 +48,12 @@ client.publish(
         "direction": "up"
     }
 )
+
+# Message with TTS-optimized text (display differs from speech)
+client.publish(
+    message="AAPL: $150.25 (+2.5%)",
+    message_tts="Apple stock is at 150 dollars and 25 cents, up 2.5 percent"
+)
 ```
 
 ### Broadcasting
@@ -112,16 +118,20 @@ client = MessagingClient(
     channel_apikey="your-api-key"
 )
 
-def on_price_change(symbol, price, change_pct):
+def on_price_change(symbol, name, price, change_pct):
+    # Display: "AAPL: $150.25 (+2.5%)"
+    # Speech: "Apple is now at 150 dollars and 25 cents, up 2.5 percent"
+    display_msg = f"{symbol}: ${price:.2f} ({change_pct:+.1f}%)"
+    speech_msg = f"{name} is now at {int(price)} dollars and {int((price % 1) * 100)} cents, {'up' if change_pct > 0 else 'down'} {abs(change_pct):.1f} percent"
+
     if abs(change_pct) > 5:
         # Major move - broadcast to everyone
-        client.broadcast(
-            f"{symbol} moved {change_pct:.1f}% to ${price:.2f}"
-        )
+        client.broadcast(display_msg, message_tts=speech_msg)
     else:
         # Normal update - let subscribers filter
         client.publish(
-            f"{symbol} is now ${price:.2f}",
+            display_msg,
+            message_tts=speech_msg,
             meta={
                 "symbol": symbol,
                 "price": price,
@@ -164,29 +174,31 @@ Initialize the messaging client.
 | `channel_apikey` | str | Your channel API key |
 | `timeout` | int | Request timeout in seconds (default: 10) |
 
-#### `publish(message, ttl_seconds=None, meta=None)`
+#### `publish(message, ttl_seconds=None, meta=None, message_tts=None)`
 
 Publish a message to subscribers. Subscribers can filter based on `meta` values.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `message` | str | The message content (converted to speech) |
+| `message` | str | The message content (used for display) |
 | `ttl_seconds` | int | Time-to-live in seconds (optional) |
 | `meta` | dict | Metadata for filtering (optional) |
+| `message_tts` | str | TTS-optimized text for speech synthesis (optional, defaults to `message`) |
 
 **Returns:** `dict` with `message_id` and `channel`
 
 **Raises:** `MessagingPublishError` on failure
 
-#### `broadcast(message, ttl_seconds=None, meta=None)`
+#### `broadcast(message, ttl_seconds=None, meta=None, message_tts=None)`
 
 Broadcast a message to ALL subscribers, bypassing their filters.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `message` | str | The message content (converted to speech) |
+| `message` | str | The message content (used for display) |
 | `ttl_seconds` | int | Time-to-live in seconds (optional) |
 | `meta` | dict | Additional metadata (optional, `broadcast: true` added automatically) |
+| `message_tts` | str | TTS-optimized text for speech synthesis (optional, defaults to `message`) |
 
 **Returns:** `dict` with `message_id` and `channel`
 

@@ -19,6 +19,7 @@ Katie Publisher SDKs allow you to integrate voice notifications into your applic
 - **Smart Filtering** - Subscribers filter messages based on metadata
 - **Broadcast Mode** - Override filters for critical announcements
 - **TTL Support** - Messages expire if not processed in time
+- **TTS Optimization** - Separate display text from speech text with `message_tts`
 
 ## Installation
 
@@ -87,10 +88,11 @@ Content-Type: application/json
 {
   "channel_apikey": "your-channel-api-key",
   "message": "Your message here",
-  "ttl_seconds": 60,           // optional
-  "meta": {                     // optional
+  "message_tts": "Your message here",  // optional, TTS-optimized text
+  "ttl_seconds": 60,                   // optional
+  "meta": {                            // optional
     "key": "value",
-    "broadcast": true           // set by broadcast() method
+    "broadcast": true                  // set by broadcast() method
   }
 }
 ```

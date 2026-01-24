@@ -47,7 +47,8 @@ class MessagingClient:
         self,
         message: str,
         ttl_seconds: Optional[int] = None,
-        meta: Optional[Dict[str, Any]] = None
+        meta: Optional[Dict[str, Any]] = None,
+        message_tts: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Publish a message to the channel.
@@ -56,11 +57,14 @@ class MessagingClient:
         Subscribers can filter messages based on the `meta` dictionary.
 
         Args:
-            message: The message content to publish (will be converted to speech)
+            message: The message content to publish (used for display)
             ttl_seconds: Time-to-live in seconds. Message expires if not processed
                          within this time. (optional)
             meta: Additional metadata dictionary. Subscribers can filter based on
                   these values. (optional)
+            message_tts: TTS-optimized message text. If provided, this text is used
+                         for speech synthesis instead of `message`. Useful when the
+                         display text differs from how it should be spoken. (optional)
 
         Returns:
             The response from the API as a dictionary containing:
@@ -76,6 +80,11 @@ class MessagingClient:
             ...     ttl_seconds=60,
             ...     meta={"hour": 15, "minute": 30}
             ... )
+            >>> # With TTS-optimized text
+            >>> client.publish(
+            ...     message="AAPL: $150.25 (+2.5%)",
+            ...     message_tts="Apple stock is at 150 dollars and 25 cents, up 2.5 percent"
+            ... )
         """
         url = f"{self.base_url}/v1/messaging/publish"
 
@@ -89,6 +98,9 @@ class MessagingClient:
 
         if meta is not None:
             payload["meta"] = meta
+
+        if message_tts is not None:
+            payload["message_tts"] = message_tts
 
         try:
             response = requests.post(
@@ -116,7 +128,8 @@ class MessagingClient:
         self,
         message: str,
         ttl_seconds: Optional[int] = None,
-        meta: Optional[Dict[str, Any]] = None
+        meta: Optional[Dict[str, Any]] = None,
+        message_tts: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Broadcast a message to ALL subscribers, bypassing their filters.
@@ -125,10 +138,12 @@ class MessagingClient:
         regardless of their subscription filter settings.
 
         Args:
-            message: The message content to broadcast (will be converted to speech)
+            message: The message content to broadcast (used for display)
             ttl_seconds: Time-to-live in seconds. (optional)
             meta: Additional metadata dictionary. The broadcast flag will be
                   automatically added. (optional)
+            message_tts: TTS-optimized message text. If provided, this text is used
+                         for speech synthesis instead of `message`. (optional)
 
         Returns:
             The response from the API as a dictionary
@@ -150,5 +165,6 @@ class MessagingClient:
         return self.publish(
             message=message,
             ttl_seconds=ttl_seconds,
-            meta=broadcast_meta
+            meta=broadcast_meta,
+            message_tts=message_tts
         )
