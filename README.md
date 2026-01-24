@@ -25,7 +25,8 @@ Katie Publisher SDKs allow you to integrate voice notifications into your applic
 ### Python
 
 ```bash
-pip install git+https://github.com/hobby/KatiePublisherSDK.git
+# Via SSH (for private repo access)
+pip install git+ssh://git@github.com/hobby/KatiePublisherSDK.git
 ```
 
 ### Quick Start
