@@ -1,0 +1,9 @@
+# Claude Code
+.claude/settings.local.json
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
