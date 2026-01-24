@@ -6,8 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Katie Publisher SDK provides client libraries for publishing voice messages to Katie channels. Messages are sent to the Katie API, converted to speech, and delivered to subscribed devices in real-time.
 
-Currently available: **Python SDK**. JavaScript/TypeScript SDK is planned but not yet implemented.
-
 ## Build & Install Commands
 
 ```bash

@@ -7,7 +7,6 @@ Official SDKs for publishing voice messages to Katie channels.
 | Language | Status | Directory |
 |----------|--------|-----------|
 | [Python](./python/) | **Available** | `python/` |
-| [JavaScript](./javascript/) | Coming Soon | `javascript/` |
 
 ## Overview
 
@@ -54,13 +53,7 @@ client.broadcast("Emergency announcement")
 Messages sent with `publish()` respect subscriber filters:
 
 ```python
-# Python
 client.publish("Stock alert", meta={"symbol": "AAPL", "price": 200})
-```
-
-```javascript
-// JavaScript (coming soon)
-await client.publish("Stock alert", { meta: { symbol: "AAPL", price: 200 } });
 ```
 
 ### Broadcasting (Unfiltered)
@@ -68,13 +61,7 @@ await client.publish("Stock alert", { meta: { symbol: "AAPL", price: 200 } });
 Messages sent with `broadcast()` go to ALL subscribers:
 
 ```python
-# Python
 client.broadcast("Emergency: System maintenance in 10 minutes")
-```
-
-```javascript
-// JavaScript (coming soon)
-await client.broadcast("Emergency: System maintenance in 10 minutes");
 ```
 
 ## API Endpoint
@@ -103,7 +90,6 @@ We welcome contributions for additional language SDKs. See each SDK's directory 
 
 ### Planned SDKs
 
-- **JavaScript/TypeScript** - For Node.js, browser, and no-code platforms (Zapier, Make, n8n)
 - **C/C++** - For embedded devices and IoT applications
 - **Go** - For high-performance server applications
 - **Rust** - For systems programming and WebAssembly
