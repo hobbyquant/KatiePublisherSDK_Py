@@ -58,6 +58,40 @@ Broadcast a message to **all** subscribers, bypassing their filter settings. Aut
 
 Parameters, return value, and exceptions are the same as `publish()`.
 
+### `client.get_subscriber_filters()`
+
+Fetch aggregated subscription filters for this channel. Returns the union of filter rules across all subscribers without exposing individual subscriber details. The result is cached internally for use by `should_publish()`.
+
+**Returns:** `dict` with:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `channel_id` | `int` | Numeric channel ID |
+| `channel_name` | `str` | Channel name |
+| `subscriber_count` | `int` | Total number of subscriptions |
+| `has_unfiltered_subscribers` | `bool` | `True` if any subscription has no filter (always receives) |
+| `filters` | `list[dict]` | Deduplicated filter rules with `field`, `op`, and `value` keys |
+
+**Raises:** `MessagingPublishError` on failure.
+
+### `client.refresh_filters()`
+
+Re-fetch subscriber filters from the API and update the internal cache. Equivalent to `get_subscriber_filters()`.
+
+### `client.should_publish(meta=None)`
+
+Check locally whether any subscriber would receive a message with the given `meta` payload. Uses the cached result from `get_subscriber_filters()` (auto-fetches on first call).
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `meta` | `dict` | No | `None` | The metadata you intend to publish with |
+
+**Returns:** `True` if at least one subscriber would receive the message, `False` otherwise.
+
+**Note:** This is a conservative (optimistic) check. It may return `True` when the server would reject (because per-subscriber filter grouping is not exposed), but it will never return `False` when a subscriber would have received. This means you won't accidentally skip messages that should be delivered.
+
+**Raises:** `MessagingPublishError` if the initial filter fetch fails.
+
 ### `MessagingPublishError`
 
 Raised when a publish or broadcast request fails.
@@ -116,6 +150,49 @@ client.publish(
 
 The message expires after 60 seconds if not processed.
 
+### Smart publishing (skip when no subscribers match)
+
+```python
+# Fetch filters once at startup
+client.get_subscriber_filters()
+
+# Before each publish, check locally if anyone would receive it
+meta = {"symbol": "AAPL", "category": "stocks"}
+if client.should_publish(meta=meta):
+    client.publish("AAPL is up 3%", meta=meta)
+else:
+    print("No matching subscribers, skipping")
+```
+
+### Inspect subscriber filters
+
+```python
+info = client.get_subscriber_filters()
+print(f"Subscribers: {info['subscriber_count']}")
+print(f"Unfiltered: {info['has_unfiltered_subscribers']}")
+for f in info["filters"]:
+    print(f"  {f['field']} {f['op']} {f['value']}")
+```
+
+### Periodic filter refresh (long-running publishers)
+
+```python
+import time
+
+client.get_subscriber_filters()  # initial fetch
+
+while True:
+    meta = get_current_meta()
+    if client.should_publish(meta=meta):
+        client.publish(build_message(), meta=meta)
+
+    # Refresh filters periodically (e.g., every 5 minutes)
+    if time_to_refresh():
+        client.refresh_filters()
+
+    time.sleep(60)
+```
+
 ### Error handling
 
 ```python
@@ -136,16 +213,15 @@ except MessagingPublishError as e:
         print(f"Error detail: {e.response}")
 ```
 
-## API Endpoint
+## API Endpoints
 
-The SDK wraps a single endpoint:
+The SDK wraps the following endpoints:
 
-```
-POST /v1/messaging/publish
-```
+### `POST /v1/messaging/publish`
 
-### Request body
+Publish a message for TTS conversion and delivery.
 
+**Request body:**
 ```json
 {
   "channel_apikey": "your-channel-api-key",
@@ -161,11 +237,28 @@ POST /v1/messaging/publish
 
 Only `channel_apikey` and `message` are required. All other fields are optional.
 
-### Response body
-
+**Response body:**
 ```json
 {
   "message_id": "unique-message-id",
   "channel": "channel-id"
+}
+```
+
+### `GET /v1/messaging/subscriber-filters?channel_apikey=...`
+
+Fetch aggregated subscription filters for the channel.
+
+**Response body:**
+```json
+{
+  "channel_id": 42,
+  "channel_name": "Stock Alerts",
+  "subscriber_count": 5,
+  "has_unfiltered_subscribers": false,
+  "filters": [
+    {"field": "symbol", "op": "==", "value": "AAPL"},
+    {"field": "delivery_hour", "op": ">=", "value": 9}
+  ]
 }
 ```
