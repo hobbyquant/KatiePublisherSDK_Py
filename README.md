@@ -5,7 +5,7 @@ Python SDK for publishing voice messages to Katie channels. Text messages are se
 ## Installation
 
 ```bash
-pip install git+ssh://git@github.com/hobby/KatiePublisherSDK.git
+pip install katie-publisher-sdk
 ```
 
 Requires Python >= 3.8.
