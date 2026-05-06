@@ -192,10 +192,7 @@ class MessagingClient:
         """
         url = f"{self.base_url}/v1/messaging/publish"
 
-        payload = {
-            "channel_apikey": self.channel_apikey,
-            "message": message,
-        }
+        payload = {"message": message}
 
         if ttl_seconds is not None:
             payload["ttl_seconds"] = ttl_seconds
@@ -210,7 +207,10 @@ class MessagingClient:
             response = requests.post(
                 url,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Authorization": f"Bearer {self.channel_apikey}",
+                    "Content-Type": "application/json",
+                },
                 timeout=self.timeout
             )
             response.raise_for_status()
@@ -310,7 +310,7 @@ class MessagingClient:
         try:
             response = requests.get(
                 url,
-                params={"channel_apikey": self.channel_apikey},
+                headers={"Authorization": f"Bearer {self.channel_apikey}"},
                 timeout=self.timeout,
             )
             response.raise_for_status()

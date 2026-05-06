@@ -215,16 +215,22 @@ except MessagingPublishError as e:
 
 ## API Endpoints
 
-The SDK wraps the following endpoints:
+The SDK wraps the following endpoints. Authentication is sent via the
+`Authorization: Bearer <channel_apikey>` header on every request.
 
 ### `POST /v1/messaging/publish`
 
 Publish a message for TTS conversion and delivery.
 
+**Request headers:**
+```
+Authorization: Bearer your-channel-api-key
+Content-Type: application/json
+```
+
 **Request body:**
 ```json
 {
-  "channel_apikey": "your-channel-api-key",
   "message": "Your message here",
   "message_tts": "TTS-optimized text",
   "ttl_seconds": 60,
@@ -235,7 +241,7 @@ Publish a message for TTS conversion and delivery.
 }
 ```
 
-Only `channel_apikey` and `message` are required. All other fields are optional.
+Only `message` is required. All other fields are optional.
 
 **Response body:**
 ```json
@@ -245,9 +251,14 @@ Only `channel_apikey` and `message` are required. All other fields are optional.
 }
 ```
 
-### `GET /v1/messaging/subscriber-filters?channel_apikey=...`
+### `GET /v1/messaging/subscriber-filters`
 
 Fetch aggregated subscription filters for the channel.
+
+**Request headers:**
+```
+Authorization: Bearer your-channel-api-key
+```
 
 **Response body:**
 ```json
